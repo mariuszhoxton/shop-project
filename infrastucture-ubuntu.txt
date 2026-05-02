@@ -1,0 +1,5 @@
+shop-project/
+├── docker-compose.yml
+├── .env.example           # Wzór zmiennych środowiskowych
+└── nginx/                 # Jeśli będziesz chciał dodać własną konfigurację
+    └── default.conf

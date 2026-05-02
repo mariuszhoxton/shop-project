@@ -1,0 +1,42 @@
+services:
+  db:
+    image: mariadb:10.6
+    container_name: shop_database
+    restart: always
+    networks:
+      - backend_internal
+    environment:
+      MYSQL_DATABASE: wordpress_db
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: secure_password_123
+      MYSQL_ROOT_PASSWORD: root_password_456
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:latest
+    container_name: shop_frontend
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - frontend_public
+      - backend_internal
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: db  # Komunikacja po nazwie usługi
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: secure_password_123
+      WORDPRESS_DB_NAME: wordpress_db
+    volumes:
+      - wp_data:/var/www/html
+
+networks:
+  frontend_public: # Sieć widoczna (np. dla Nginxa w przyszłości)
+  backend_internal: # Sieć całkowicie odizolowana
+    internal: true
+
+volumes:
+  db_data:
+  wp_data:
