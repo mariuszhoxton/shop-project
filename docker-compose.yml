@@ -1,4 +1,17 @@
 services:
+  nginx:
+    image: nginx:latest
+    container_name: shop_proxy
+    restart: always
+    ports:
+      - "80:80"  # Teraz Nginx nasłuchuje na porcie 80 Twojego Ubuntu
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - wordpress
+    networks:
+      - frontend_public
+
   db:
     image: mariadb:10.6
     container_name: shop_database
@@ -8,33 +21,33 @@ services:
     environment:
       MYSQL_DATABASE: wordpress_db
       MYSQL_USER: wp_user
-      MYSQL_PASSWORD: ${DB_PASSWORD}        # Pobierze z pliku .env
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD} # Pobierze z pliku .env
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
 
   wordpress:
     image: wordpress:latest
-    container_name: shop_frontend
+    container_name: shop_frontend  # Zostawiamy Twoją nazwę
     restart: always
     depends_on:
       - db
     networks:
       - frontend_public
       - backend_internal
-    ports:
-      - "80:80"
+    # USUNĘLIŚMY sekcję ports: "80:80" tutaj!
+    # WordPress teraz "rozmawia" z Nginxem przez sieć frontend_public
     environment:
-      WORDPRESS_DB_HOST: db  # Komunikacja po nazwie usługi
+      WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: wp_user
-      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}        # Pobierze z pliku .env
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
       WORDPRESS_DB_NAME: wordpress_db
     volumes:
       - wp_data:/var/www/html
 
 networks:
-  frontend_public: # Sieć widoczna (np. dla Nginxa w przyszłości)
-  backend_internal: # Sieć całkowicie odizolowana
+  frontend_public:
+  backend_internal:
     internal: true
 
 volumes:
