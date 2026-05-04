@@ -19,6 +19,7 @@ services:
     networks:
       - backend_internal
     environment:
+     - TZ=Europe/Warsaw
       MYSQL_DATABASE: wordpress_db
       MYSQL_USER: wp_user
       MYSQL_PASSWORD: ${DB_PASSWORD}
