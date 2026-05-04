@@ -5,8 +5,10 @@ services:
     restart: always
     ports:
       - "80:80"  # Teraz Nginx nasłuchuje na porcie 80 Twojego Ubuntu
+      - "443:443"  # <--- NOWE! Nginx nasłuchuje też na porcie 443 dla HTTPS
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # Tu Nginx znajdzie Twoje selfsigned.crt i .key
     depends_on:
       - wordpress
     networks:
@@ -48,6 +50,15 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - wp_data:/var/www/html
+  certbot:
+    image: certbot/certbot
+    container_name: shop_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - frontend_public
 
 networks:
   frontend_public:
