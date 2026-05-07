@@ -59,6 +59,17 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - frontend_public
+  metabase:
+    image: metabase/metabase:latest
+    container_name: shop_analytics
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_DB_TYPE=h2  # Na początek Metabase użyje własnej małej bazy danych
+    networks:
+      - frontend_public
+      - backend_internal
 
 networks:
   frontend_public:
