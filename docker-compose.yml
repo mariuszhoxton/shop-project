@@ -19,7 +19,9 @@ services:
     container_name: shop_database
     restart: always
     networks:
-      - backend_internal
+      - backend_internal  # dla  WordPressa i Nginx
+    # NIE POTRZEBUJEMY portów dla bazy, bo nie będzie dostępna zewnątrz, tylko dla WordPressa przez sieć backend_internal
+      - analytics_net  # dla Metabase, jeśli kiedyś będziesz chciał, żeby Metabase miało bezpośredni dostęp do bazy (nie jest to konieczne na początek)
     environment:
       MYSQL_DATABASE: wordpress_db
       MYSQL_USER: wp_user
@@ -69,12 +71,13 @@ services:
       - MB_DB_TYPE=h2  # Na początek Metabase użyje własnej małej bazy danych
     networks:
       - frontend_public
-      - backend_internal
-
+      - analytics_net  # Metabase jest też w sieci analytics_net
+      
 networks:
   frontend_public:
   backend_internal:
     internal: true
+  analytics_net:       #Nowa sieć dla Metabase
 
 volumes:
   db_data:
