@@ -80,7 +80,7 @@ networks:
   frontend_public:
   backend_internal:
     internal: true
-  analytics_net:       #Nowa sieć dla Metabase  
+  analytics_net:        #Nowa sieć dla Metabase  
 volumes:
   db_data:
   wp_data:
