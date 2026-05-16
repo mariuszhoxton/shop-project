@@ -84,6 +84,7 @@ networks:
     internal: true
   analytics_net:         #Nowa sieć dla Metabase 
   global_monitoring_net:  # Sieć dla Netdata, już zdefiniowana w deploy-monitoring.yml 
+     external: true
 volumes:
   db_data:
   wp_data:
