@@ -22,6 +22,7 @@ services:
       - backend_internal  # dla  WordPressa i Nginx
     # NIE POTRZEBUJEMY portów dla bazy, bo nie będzie dostępna zewnątrz, tylko dla WordPressa przez sieć backend_internal
       - analytics_net  # dla Metabase, jeśli kiedyś będziesz chciał, żeby Metabase miało bezpośredni dostęp do bazy (nie jest to konieczne na początek)
+      - global_monitoring_net  # dla Netdata, żeby mogło monitorować bazę danych
     environment:
       MYSQL_DATABASE: wordpress_db
       MYSQL_USER: wp_user
@@ -75,12 +76,14 @@ services:
     networks:
       - frontend_public
       - analytics_net  # Metabase jest też w sieci analytics_net
-      
+      - global_monitoring_net  # Metabase jest też w sieci global_monitoring_net
+
 networks:
   frontend_public:
   backend_internal:
     internal: true
-  analytics_net:         #Nowa sieć dla Metabase  
+  analytics_net:         #Nowa sieć dla Metabase 
+  global_monitoring_net:  # Sieć dla Netdata, już zdefiniowana w deploy-monitoring.yml 
 volumes:
   db_data:
   wp_data:
