@@ -76,7 +76,7 @@ services:
     networks:
       - frontend_public
       - analytics_net  # Metabase jest też w sieci analytics_net
-      - global_monitoring_net  # Metabase jest też w sieci global_monitoring_net
+     # - global_monitoring_net  # Metabase jest też w sieci global_monitoring_net
 
 networks:
   frontend_public:
