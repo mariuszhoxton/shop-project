@@ -108,4 +108,4 @@ volumes:
   db_data:
   wp_data:
   metabase_data:
-  portainer_data:        # USUNIĘTO external: true oraz name! Docker sam stworzy czysty wolumen.
+  portainer_data:        # USUNIĘTO external: true oraz name! Docker sam stworzy czysty wolumen
