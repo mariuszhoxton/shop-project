@@ -4,24 +4,27 @@ services:
     container_name: shop_proxy
     restart: always
     ports:
-      - "80:80"  # Teraz Nginx nasłuchuje na porcie 80 Twojego Ubuntu
-      - "443:443"  # <--- NOWE! Nginx nasłuchuje też na porcie 443 dla HTTPS
+      - "80:80"  
+      - "443:443"  
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro  # Tu Nginx znajdzie Twoje selfsigned.crt i .key
+      - ./nginx/ssl:/etc/nginx/ssl:ro  
     depends_on:
       - wordpress
+      - metabase    # Nginx czeka na uruchomienie analityki
+      - portainer   # Nginx czeka na uruchomienie Portainera
     networks:
       - frontend_public
+      - proxy_analytics  # Bezpieczna sieć do Metabase
+      - proxy_portainer  # Bezpieczna sieć do Portainera
 
   db:
     image: mariadb:10.6
     container_name: shop_database
     restart: always
     networks:
-      - backend_internal  # dla  WordPressa i Nginx
-    # NIE POTRZEBUJEMY portów dla bazy, bo nie będzie dostępna zewnątrz, tylko dla WordPressa przez sieć backend_internal
-      - analytics_net  # dla Metabase, jeśli kiedyś będziesz chciał, żeby Metabase miało bezpośredni dostęp do bazy (nie jest to konieczne na początek)
+      - backend_internal  
+      - analytics_net  
     environment:
       MYSQL_DATABASE: wordpress_db
       MYSQL_USER: wp_user
@@ -34,15 +37,13 @@ services:
 
   wordpress:
     image: wordpress:latest
-    container_name: shop_frontend  # Zostawiamy Twoją nazwę
+    container_name: shop_frontend  
     restart: always
     depends_on:
       - db
     networks:
       - frontend_public
       - backend_internal
-    # USUNĘLIŚMY sekcję ports: "80:80" tutaj!
-    # WordPress teraz "rozmawia" z Nginxem przez sieć frontend_public
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: wp_user
@@ -52,6 +53,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - wp_data:/var/www/html
+
   certbot:
     image: certbot/certbot
     container_name: shop_certbot
@@ -61,28 +63,51 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - frontend_public
+
   metabase:
     image: metabase/metabase:latest
     container_name: shop_analytics
     restart: always
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000" # ZAKOMENTOWANO - odcięte od świata
     environment:
-      - MB_DB_TYPE=h2  # Na początek Metabase użyje własnej małej bazy danych
-      - MB_DB_FILE=/metabase-data/metabase.db # Dane Metabase będą przechowywane w tym wolumenie
+      - MB_DB_TYPE=h2  
+      - MB_DB_FILE=/metabase-data/metabase.db 
+      - MB_SITE_URL=http://192.168.56  # Informuje Metabase o nowej ścieżki www
     volumes:
-      - metabase_data:/metabase-data # Wolumen dla danych Metabase
+      - metabase_data:/metabase-data 
     networks:
-      - frontend_public
-      - analytics_net  # Metabase jest też w sieci analytics_net
+      - proxy_analytics   # Połączenie tylko z Nginxem
+      - analytics_net  
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    # ports:
+    #   - "9000:9000" # ZAKOMENTOWANO - odcięte od świata
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - proxy_portainer # Połączenie tylko z Nginxem
+    command: --base-url=/portainer/  # Informuje Portainera o nowej ścieżce www
 
 networks:
   frontend_public:
   backend_internal:
     internal: true
-  analytics_net:         #Nowa sieć dla Metabase 
+  analytics_net:         
+    internal: true       
+  proxy_analytics:       
+    internal: true
+  proxy_portainer:       
+    internal: true
   
 volumes:
   db_data:
   wp_data:
   metabase_data:
+  portainer_data:        # Zachowanie starego wolumenu Portainera
+    external: true
+    name: portainer_data
