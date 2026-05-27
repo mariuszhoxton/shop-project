@@ -73,7 +73,7 @@ services:
     environment:
       - MB_DB_TYPE=h2  
       - MB_DB_FILE=/metabase-data/metabase.db 
-      - MB_SITE_URL=http://192.168.56  # Informuje Metabase o nowej ścieżki www
+      - MB_SITE_URL=http://192.168.56.11/metabase  # Informuje Metabase o nowej ścieżki www
     volumes:
       - metabase_data:/metabase-data 
     networks:
